@@ -8,6 +8,9 @@ import chalk from 'chalk';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const CURR_DIR = process.cwd();
+const templatePat = path.join(__dirname, 'template');
+const tartgetPat = path.join(CURR_DIR, 'peppubuild');
 
 const prompt = inquirer.createPromptModule();
 
@@ -20,22 +23,21 @@ prompt([
 ])
     .then((answer) => {
         if (answer['install'] == true) {
-            const templatePath = path.join(__dirname, 'template');
 
             // Call createProject in inquirerPrecss
-            if (!createProject(CURR_DIR)) {
+            if (!createProject(tartgetPat)) {
                 return;
             }
 
             // Call createDirectoryContents
-            createDirectoryContents(templatePath);
+            createDirectoryContents(templatePat, 'peppubuild');
         }
     })
     .catch((error) => {
         if (error.isTtyError) {
             // Prompt couldn't be rendered in the current environment
         } else {
-            // Something else went wrong
+            
         }
     });
 
@@ -53,7 +55,8 @@ function createProject(projectPath) {
 }
 
 // Add contents into the directory
-function createDirectoryContents(templatePath) {
+// Add contents into the directory
+function createDirectoryContents(templatePath, projectName) {
     // read all files/folders (1 level) from template folder
     const filesToCreate = fs.readdirSync(templatePath);
     // loop each file/folder
@@ -66,13 +69,13 @@ function createDirectoryContents(templatePath) {
             // read file content and transform it using template engine
             let contents = fs.readFileSync(origFilePath, 'utf8');
             // write file to destination folder
-            const writePath = path.join(CURR_DIR, file);
+            const writePath = path.join(CURR_DIR, projectName, file);
             fs.writeFileSync(writePath, contents, 'utf8');
         } else if (stats.isDirectory()) {
             // create folder in destination folder
-            fs.mkdirSync(path.join(CURR_DIR, file));
+            fs.mkdirSync(path.join(CURR_DIR, projectName, file));
             // copy files/folder inside current folder recursively
-            createDirectoryContents(path.join(templatePath, file), path.join(file));
+            createDirectoryContents(path.join(templatePath, file), path.join(projectName, file));
         }
     })
 }
